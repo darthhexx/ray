@@ -164,7 +164,7 @@ class InstanceStorage(object):
         return instances, version
 
     def batch_delete_instances(
-        self, to_delete: List[str], expected_storage_version: Optional[int] = None
+        self, instance_ids: List[str], expected_storage_version: Optional[int] = None
     ) -> Tuple[bool, int]:
         """Delete instances from the storage. If the expected_version is
         specified, the update will fail if the current storage version does not
@@ -182,7 +182,7 @@ class InstanceStorage(object):
             return False, version
 
         result = self._storage.batch_update(
-            self._table_name, {}, to_delete, expected_storage_version
+            self._table_name, {}, instance_ids, expected_storage_version
         )
 
         if result[0] and self._status_change_subscriber:
@@ -192,7 +192,7 @@ class InstanceStorage(object):
                         instance_id=instance_id,
                         new_status=Instance.GARAGE_COLLECTED,
                     )
-                    for instance_id in to_delete
+                    for instance_id in instance_ids
                 ],
             )
         return result
