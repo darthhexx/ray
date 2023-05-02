@@ -68,7 +68,10 @@ class InstanceStorage(object):
         if expected_storage_version and expected_storage_version != version:
             return False, version
 
-        for instance in updates.values():
+        for instance in updates:
+            # the instance version is set to 0, it will be
+            # populated by the storage entry's verion on read
+            instance.version = 0
             mutations[instance.instance_id] = instance.SerializeToString()
 
         result, version = self._storage.batch_update(
@@ -112,7 +115,9 @@ class InstanceStorage(object):
         Returns:
             Tuple[bool, int]: A tuple of (success, storage_version).
         """
-
+        # the instance version is set to 0, it will be
+        # populated by the storage entry's verion on read
+        instance.version = 0
         result, version = self._storage.update(
             self._table_name,
             key=instance.instance_id,
