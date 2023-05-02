@@ -42,10 +42,10 @@ class InstanceStorage(object):
         self._table_name = f"instance_table@{cluster_id}"
         self._status_change_subscriber = status_change_subscriber
 
-    def upsert_instances(
+    def batch_upsert_instances(
         self,
         updates: List[Instance],
-        expected_storage_version: Optional[int],
+        expected_storage_version: Optional[int] = None,
     ) -> Tuple[bool, int]:
         """Upsert instances into the storage. If the instance already exists,
         it will be updated. Otherwise, it will be inserted. If the
@@ -91,13 +91,13 @@ class InstanceStorage(object):
 
         return result, version
 
-    def update_instance(
+    def upsert_instance(
         self,
         instance: Instance,
-        expected_instance_version: Optional[int],
-        expected_storage_verison: Optional[int],
+        expected_instance_version: Optional[int] = None,
+        expected_storage_verison: Optional[int] = None,
     ) -> Tuple[bool, int]:
-        """Update an instance in the storage.
+        """Upsert an instance in the storage.
         If the expected_instance_version is specified, the update will fail
         if the current instance version does not match the expected version.
         Similarly, if the expected_storage_version is
@@ -124,7 +124,7 @@ class InstanceStorage(object):
             value=instance.SerializeToString(),
             expected_entry_version=expected_instance_version,
             expected_storage_version=expected_storage_verison,
-            insert_only=True,
+            insert_only=False,
         )
 
         if result and self._status_change_subscriber:
@@ -163,8 +163,8 @@ class InstanceStorage(object):
             instances[instance_id] = instance
         return instances, version
 
-    def delete_instances(
-        self, to_delete: List[Instance], expected_version: Optional[int]
+    def batch_delete_instances(
+        self, to_delete: List[str], expected_storage_version: Optional[int] = None
     ) -> Tuple[bool, int]:
         """Delete instances from the storage. If the expected_version is
         specified, the update will fail if the current storage version does not
@@ -178,21 +178,21 @@ class InstanceStorage(object):
             Tuple[bool, int]: A tuple of (success, storage_version).
         """
         version = self._storage.get_version()
-        if expected_version and expected_version != version:
+        if expected_storage_version and expected_storage_version != version:
             return False, version
 
         result = self._storage.batch_update(
-            self._table_name, {}, to_delete, expected_version
+            self._table_name, {}, to_delete, expected_storage_version
         )
 
         if result[0] and self._status_change_subscriber:
             self._status_change_subscriber.notify(
                 [
                     InstanceUpdateEvent(
-                        instance_id=instance.instance_id,
+                        instance_id=instance_id,
                         new_status=Instance.GARAGE_COLLECTED,
                     )
-                    for instance in to_delete
+                    for instance_id in to_delete
                 ],
             )
         return result

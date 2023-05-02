@@ -119,7 +119,7 @@ class InMemoryStorage(Storage):
     ) -> Tuple[bool, int]:
         with self._lock:
             if expected_version is not None and expected_version != self._version:
-                return [False, self._version]
+                return (False, self._version)
             self._version += 1
             key_value_pairs_with_version = {
                 key: (value, self._version) for key, value in mutation.items()
@@ -127,7 +127,7 @@ class InMemoryStorage(Storage):
             self._tables[table].update(key_value_pairs_with_version)
             for deleted_key in deletion:
                 self._tables[table].pop(deleted_key, None)
-            return [True, self._version]
+            return (True, self._version)
 
     def update(
         self,
@@ -143,15 +143,15 @@ class InMemoryStorage(Storage):
                 expected_storage_version is not None
                 and expected_storage_version != self._version
             ):
-                return [False, self._version]
+                return (False, self._version)
             if insert_only and key in self._tables[table]:
-                return [False, self._version]
+                return (False, self._version)
             _, version = self._tables[table].get(key, (None, -1))
             if expected_entry_version is not None and expected_entry_version != version:
-                return [False, self._version]
+                return (False, self._version)
             self._version += 1
             self._tables[table][key] = (value, self._version)
-            return [True, self._version]
+            return (True, self._version)
 
     def get_all(self, table: str) -> Tuple[Dict[str, Tuple[str, int]], int]:
         with self._lock:
