@@ -270,7 +270,7 @@ def test_get_instances():
         1,
     ) == storage.get_instances(instance_ids=["instance1", "instance2"])
 
-    assert ({"instance2": instance2,}, 1) == storage.get_instances(
+    assert ({"instance2": instance2}, 1) == storage.get_instances(
         instance_ids=["instance1", "instance2"], status_filter={Instance.RUNNING}
     )
 
