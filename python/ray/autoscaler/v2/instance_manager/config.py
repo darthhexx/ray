@@ -5,9 +5,9 @@ from ray.autoscaler._private.util import hash_runtime_conf
 from ray.core.generated.instance_manager_pb2 import Instance
 
 
-class InstanceConfigProvider(object):
+class NodeProviderConfig(object):
     """
-    InstanceConfigProvider is the helper class to provide instance
+    NodeProviderConfig is the helper class to provide instance
     related configs.
     """
 

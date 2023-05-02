@@ -5,7 +5,7 @@ from typing import Dict, List, override
 from ray.autoscaler._private.node_launcher import BaseNodeLauncher
 from ray.autoscaler.node_provider import NodeProvider as NodeProviderV1
 from ray.autoscaler.tags import TAG_RAY_USER_NODE_TYPE
-from ray.autoscaler.v2.instance_manager.config_provider import InstanceConfigProvider
+from ray.autoscaler.v2.instance_manager.config_provider import NodeProviderConfig
 from ray.core.generated.instance_manager_pb2 import Instance, InstanceType
 
 logger = logging.getLogger(__name__)
@@ -58,7 +58,7 @@ class NodeProviderAdapter(NodeProvider):
         self,
         provider: NodeProviderV1,
         node_launcher: BaseNodeLauncher,
-        instance_config_provider: InstanceConfigProvider,
+        instance_config_provider: NodeProviderConfig,
     ) -> None:
         super().__init__()
         self._provider = provider
